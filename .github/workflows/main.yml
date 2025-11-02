@@ -27,3 +27,11 @@ jobs:
         with:
           name: main-pdf
           path: main.pdf
+
+      - name: Create 'latest' Release and Upload PDF
+        if: github.ref == 'refs/heads/main'
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: latest
+          files: main.pdf
+          body: "Latest build of the Cisco Network Topology Setup Guide."
