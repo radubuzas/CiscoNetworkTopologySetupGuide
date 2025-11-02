@@ -1,0 +1,204 @@
+\documentclass[a4paper,12pt]{article}
+\usepackage{geometry}
+\usepackage{setspace}
+\usepackage{minted} % Requires pygments installed
+\usepackage{titlesec}
+\usepackage{xcolor}
+\usepackage{graphicx}
+
+\geometry{margin=1in}
+\setstretch{1.1}
+\definecolor{lightgray}{gray}{0.95}
+\titleformat{\section}{\large\bfseries}{}{0em}{}
+
+\begin{document}
+
+\title{Cisco Packet Tracer Detailed Setup Guide}
+\author{}
+\date{}
+\maketitle
+
+\section*{HOST}
+\begin{enumerate}
+    \item Rename
+    \item Turn off, add \texttt{*-CGE} Network Interface Card, turn on
+    \item Config IP, mask, Default Gateway, DNS Server
+    \item Config wireless profile
+    \item Config e-mail address
+    \item ????????? 
+\end{enumerate}
+
+\section*{SWITCH - 2960}
+Rename the switch with the appropriate name. Usual format Sw\textbf{NetworkName}.
+
+\vspace{0.3cm}
+
+\noindent Basic configuration:
+
+\begin{minted}[bgcolor=lightgray,fontsize=\small,breaklines]{bash}
+> enable
+# configure terminal
+(config)# hostname SwNetworkName
+(config)# no ip domain-lookup
+(config)# no cdp run
+(config)# service password-encryption
+(config)# enable secret ciscosecpa55
+(config)# enable password ciscoenapa55
+(config)# banner motd "Informare generica"
+\end{minted}
+
+\noindent Setting up SSH:
+
+\begin{minted}[bgcolor=lightgray,fontsize=\small,breaklines]{bash}
+(config)# ip domain name sal.ro
+(config)# username Admin01 privilege 15 secret Admin01pa55
+(config)# crypto key generate rsa
+2048
+(config)# ip ssh version 2
+(config)# ip ssh time-out 90
+(config)# ip ssh authentication-retries 3
+\end{minted}
+
+\noindent Logging messages:
+
+\begin{minted}[bgcolor=lightgray,fontsize=\small,breaklines]{bash}
+(config)# logging host IpDnsServer
+(config)# service timestamps log datetime msec
+(config)# service timestamps debug datetime msec
+\end{minted}
+
+\noindent Console and VTY lines configuration
+\begin{minted}[bgcolor=lightgray,fontsize=\small,breaklines]{bash}
+(config)# line console 0
+(config-line)# password ciscoconpa55
+(config-line)# login
+(config-line)# logging synchronous
+(config-line)# exec-timeout 15 10
+(config-line)# exit
+(config)# line vty 0 15
+(config-line)# password ciscovtypa55
+(config-line)# login
+(config-line)# logging synchronous
+(config-line)# exec-timeout 10 15
+(config-line)# transport input ssh
+(config-line)# login local
+(config-line)# exit
+\end{minted}
+
+\noindent Setting up the management interface:
+\begin{minted}[bgcolor=lightgray,fontsize=\small,breaklines]{bash}
+(config)# interface vlan 1
+(config-if)# description "Relevant Switch Description"
+(config-if)# ip address SwIpAddress NetworkMask
+(config-if)# no shutdown
+(config-if)# exit
+(config)# ip default-gateway IpDefaultGateway
+(config)# end
+# clock set 12:34:56 01 Jan 2025
+# copy running-config startup-config
+\end{minted}
+
+\section*{ROUTER - 2910}
+Turn off the router and add \textbf{HWIC-2T} module for additional interfaces, as shown in Figure~\ref{fig:router}. Turn on the router.
+
+\begin{figure}[h]
+\centering
+\includegraphics[width=0.8\textwidth]{./images/Router.png}
+\caption{Router Image}
+\label{fig:router}
+\end{figure}
+
+\vspace{0.3cm}
+
+\noindent Rename the router with the appropriate name. Usual format R\textbf{NetworkName}.
+
+\vspace{0.3cm}
+
+\noindent Basic configuration:
+\begin{minted}[bgcolor=lightgray,fontsize=\small,breaklines]{bash}
+> enable
+# configure terminal
+(config)# hostname RNetworkName
+(config)# no ip domain-lookup
+(config)# no cdp run
+(config)# service password-encryption
+(config)# security passwords min-length 10
+(config)# login block-for 60 attempts 3 within 15
+(config)# enable secret ciscosecpa55
+(config)# enable password ciscoenapa55
+(config)# banner motd "Informare generica"
+(config)# banner login "Consecinte legale de la stanga la dreapta pt persoanele neautorizate"
+\end{minted}
+
+\noindent Setting up SSH:
+\begin{minted}[bgcolor=lightgray,fontsize=\small,breaklines]{bash}
+(config)# ip domain name sal.ro
+(config)# username Admin01 privilege 15 secret Admin01pa55
+(config)# crypto key generate rsa
+2048
+(config)# ip ssh version 2
+(config)# ip ssh time-out 90
+(config)# ip ssh authentication-retries 3
+\end{minted}
+
+\noindent Logging messages:
+\begin{minted}[bgcolor=lightgray,fontsize=\small,breaklines]{bash}
+(config)# logging host IpDnsServer
+(config)# service timestamps log datetime msec
+(config)# service timestamps debug datetime msec
+\end{minted}
+
+\noindent Console and VTY lines configuration:
+\begin{minted}[bgcolor=lightgray,fontsize=\small,breaklines]{bash}
+(config)# line console 0 
+(config-line)# password ciscoconpa55
+(config-line)# login
+(config-line)# logging synchronous
+(config-line)# exec-timeout 15 10
+(config-line)# exit
+(config)# line vty 0 15
+(config-line)# password ciscovtypa55
+(config-line)# login
+(config-line)# logging synchronous
+(config-line)# exec-timeout 10 15
+(config-line)# transport input ssh
+(config-line)# login local
+(config-line)# exit
+\end{minted}
+
+\noindent Setting up interfaces and routing:
+\begin{minted}[bgcolor=lightgray,fontsize=\small,breaklines]{bash}
+(config)# interface GigabitEthernet 0/0
+(config-if)# description "Relevant Interface Description"
+(config-if)# ip address RouterIpAddressLan NetworkMask
+(config-if)# no shutdown
+(config-if)# exit
+(config)# interface Serial 0/0/0
+(config-if)# description "Relevant Interface Description"
+(config-if)# ip address RouterIpAddressWan NetworkMask
+(config-if)# no shutdown
+(config-if)# exit
+\end{minted}
+
+\noindent Routing Open Shortest Path First (\textbf{OSPF}) and disable interfaces that are not used by OSPF:
+\begin{minted}[bgcolor=lightgray,fontsize=\small,breaklines]{bash}
+(config)# router ospf 1
+(config-router)# network WanIpAddress WildcardMask area 0
+(config-router)# network LanIpAddress WildcardMask area 0
+(config-router)# passive-interface GigabitEthernet 0/1
+(config-router)# passive-interface GigabitEthernet 0/2
+(config-router)# passive-interface Serial 0/0/1
+(config-router)# end
+\end{minted}
+
+\noindent \textbf{Important note:} Used/unused interfaces may depend on the context, and this is just an example.
+
+\vspace{0.3cm}
+
+\noindent Set time and save configuration:
+\begin{minted}[bgcolor=lightgray,fontsize=\small,breaklines]{bash}
+# clock set 12:34:56 01 Jan 2025
+# copy running-config startup-config 
+\end{minted}
+
+\end{document}
