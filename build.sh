@@ -27,6 +27,6 @@ docker run --rm -it \
   -v "$(pwd):/workdir" \
   -w /workdir \
   "$DOCKER_IMAGE" \
-  sh -c "latexmk -C '$MAIN_FILE' && latexmk -pdf -shell-escape '$MAIN_FILE'"
+  sh -c "latexmk -C '$MAIN_FILE' && latexmk -pdf -shell-escape '$MAIN_FILE' && latexmk -c"
 
 echo "--- Compilation finished. ---"
