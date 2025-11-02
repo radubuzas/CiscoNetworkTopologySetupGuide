@@ -19,6 +19,8 @@ jobs:
           root_file: main.tex
           latexmk_shell_escape: true
           docker_image: ghcr.io/xu-cheng/texlive-alpine-small:20251002
+          pre_compile: "tlmgr update --self && tlmgr update --all && tlmgr install minted titlesec"
+          post_compile: "latexmk -c"
 
       - name: Upload PDF artifact
         uses: actions/upload-artifact@v4
