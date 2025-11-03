@@ -201,4 +201,14 @@ Turn off the router and add \textbf{HWIC-2T} module for additional interfaces, a
 # copy running-config startup-config 
 \end{minted}
 
+\section*{NTP setup}
+\begin{minted}[bgcolor=lightgray,fontsize=\small,breaklines]{bash}
+(config)# ntp server SERVER_IP
+(config)# ntp authenticate
+(config)# ntp trusted 1
+(config)# ntp authentication-key md5 NTPa55
+(config)# ntp update-calendar   (Only for Router)
+(config)# show clock            (Check time)
+\end{minted}
+
 \end{document}
