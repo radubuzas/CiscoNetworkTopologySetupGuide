@@ -201,4 +201,48 @@ Turn off the router and add \textbf{HWIC-2T} module for additional interfaces, a
 # copy running-config startup-config 
 \end{minted}
 
+\section*{DHCP}
+
+\noindent \textbf{RouterName (DHCP Server):}
+\noindent \textbf{Note:} Set IpExcludedStart and IpExcludedEnd to exclude the address range from the default gateway to the host IP (i.e., IpExcludedStart = IpDefaultGateway, IpExcludedEnd = HostIP).
+\begin{minted}[bgcolor=lightgray,fontsize=\small,breaklines]{bash}
+(config)# ip dhcp excluded-address IpExcludedStart IpExcludedEnd
+(config)# ip dhcp pool PoolName
+(dhcp-config)# network NetworkAddress NetworkMask
+(dhcp-config)# default-router IpDefaultGateway
+(dhcp-config)# dns-server IpDnsServer
+(dhcp-config)# domain-name DomainName
+\end{minted}
+
+\noindent \textbf{RouterName (DHCP Relay):}
+\begin{minted}[bgcolor=lightgray,fontsize=\small,breaklines]{bash}
+(config)# interface InterfaceName
+(config-if)# ip helper-address IpDhcpServer
+\end{minted}
+
+\section*{NTP}
+
+\noindent \textbf{Switches and Routers:}
+\begin{minted}[bgcolor=lightgray,fontsize=\small,breaklines]{bash}
+(config)# ntp server IpNtpServer
+(config)# ntp authenticate
+(config)# ntp trusted-key 1
+(config)# ntp authentication-key 1 MD5 NtpPassword
+\end{minted}
+
+\noindent \textbf{Routers only:}
+\begin{minted}[bgcolor=lightgray,fontsize=\small,breaklines]{bash}
+(config)# ntp update-calendar
+\end{minted}
+
+\section*{FTP}
+
+\noindent \textbf{Command Prompt:}
+\begin{minted}[bgcolor=lightgray,fontsize=\small,breaklines]{bash}
+ftp IpFtpServer
+dir
+get FileName
+\end{minted}
+
+
 \end{document}
