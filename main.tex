@@ -365,4 +365,95 @@ Then configure the Email server settings:
 
 \noindent AAA is now active and ready to authenticate RADIUS clients.
 
+% ==========================================
+% SECTION 3: WI-FI
+% ==========================================
+\section{Wi-Fi}
+
+\subsection{Physical Connection}
+\begin{enumerate}
+    \item Add a \textbf{WRT300N} Wireless Router.
+    \item Connect a configuration laptop (Service Laptop) to the router using a \textbf{Copper Straight-Through} cable (Laptop FastEthernet0 $\rightarrow$ Router Ethernet 1).
+    \item Connect the Router to the ISP/Main Router using the \textbf{Internet} port.
+\end{enumerate}
+
+\subsection{Accessing the GUI}
+\begin{enumerate}
+    \item On the Service Laptop, configure a static IP (e.g., \texttt{192.168.0.10}) in the same range as the default router IP (\texttt{192.168.0.1}).
+    \item Open the Web Browser and navigate to \texttt{192.168.0.1}.
+    \item Login with username: \texttt{admin} and password: \texttt{admin}.
+\end{enumerate}
+
+\subsection{Network Setup (GUI)}
+\begin{itemize}
+    \item \textbf{Internet Connection Type:} Static IP
+    \item \textbf{Internet IP Address:} \texttt{10.10.10.2} (Interface facing the ISP)
+    \item \textbf{Subnet Mask:} \texttt{255.255.255.252}
+    \item \textbf{Default Gateway:} \texttt{10.10.10.1}
+    \item \textbf{DNS 1:} IpDnsServer (e.g., \texttt{192.168.20.254})
+    \item \textbf{Router IP:} Change Local IP if required (e.g., \texttt{192.168.50.65}).
+    \item \textbf{DHCP Server:} Enabled
+    \item Click \textbf{Save Settings}.
+\end{itemize}
+
+\noindent \textbf{Note:} If you changed the Router IP, you must release/renew the IP on your Service Laptop to reconnect to the GUI.
+
+\subsection{Wireless Settings} 
+\begin{itemize}
+    \item Navigate to \textbf{Wireless} $\rightarrow$ \textbf{Basic Wireless Settings}.
+    \item \textbf{Network Name (SSID):} \texttt{Wi-FiDaisy}
+    \item \textbf{Standard Channel:} \texttt{6 or 11}
+    \item \textbf{SSID Broadcast:} Enabled
+    \item Click \textbf{Save Settings}.
+\end{itemize}
+
+\subsection{Wireless Security (WPA2 Enterprise)}
+\begin{itemize}
+    \item Navigate to \textbf{Wireless} $\rightarrow$ \textbf{Wireless Security}.
+    \item \textbf{Security Mode:} WPA2 Enterprise
+    \item \textbf{Encryption:} AES
+    \item \textbf{RADIUS Server:} IpRadiusServer (e.g., \texttt{192.168.20.254})
+    \item \textbf{Shared Secret:} \texttt{RadiusPa55}
+    \item Click \textbf{Save Settings}.
+\end{itemize}
+
+\subsection{Wireless Client (Laptop) Setup}
+\begin{enumerate}
+    \item Turn off laptop, replace module with \textbf{WPC300N}, turn on.
+    \item Open \textbf{PC Wireless} software on Desktop.
+    \item Go to \textbf{Profiles} $\rightarrow$ \textbf{New} $\rightarrow$ Enter Profile Name (e.g., Wi-FiDaisy).
+    \item \textbf{Advanced Setup} $\rightarrow$ select Infrastructure Mode.
+    \item \textbf{Security:} WPA2 Enterprise.
+    \item \textbf{Login Name:} \texttt{Wi-FiDaisy}
+    \item \textbf{Password:} \texttt{RadiusPa55} (from User Setup in AAA).
+    \item Click \textbf{Connect}.
+\end{enumerate}
+
+\subsection{MAC Address Filtering}
+\begin{enumerate}
+    \item Identify the MAC address of the laptop to block (command: \texttt{ipconfig /all}).
+    \item In Router GUI, go to \textbf{Wireless} $\rightarrow$ \textbf{Wireless MAC Filter}.
+    \item Select \textbf{Enabled} and \textbf{Prevent PCs listed below}.
+    \item Enter the MAC address (format: \texttt{00:11:22:33:44:55}).
+    \item Click \textbf{Save Settings}.
+\end{enumerate}
+
+\subsection{Configuring the ISP Router Interface} 
+Connect to the router (e.g., RDaisy) connected to the Wi-Fi router.
+
+\begin{minted}[bgcolor=lightgray,fontsize=\small,breaklines]{bash}
+(config)# interface GigabitEthernet 0/1
+(config-if)# description "Connection to Wi-Fi Router"
+(config-if)# ip address 10.10.10.1 255.255.255.252
+(config-if)# no shutdown
+(config-if)# exit
+\end{minted}
+
+\noindent Add the Wi-Fi network to OSPF routing:
+
+\begin{minted}[bgcolor=lightgray,fontsize=\small,breaklines]{bash}
+(config)# router ospf 1
+(config-router)# network 10.10.10.0 0.0.0.3 area 0
+\end{minted}
+
 \end{document}
