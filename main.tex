@@ -5,11 +5,12 @@
 \usepackage{titlesec}
 \usepackage{xcolor}
 \usepackage{graphicx}
+\usepackage[hidelinks,bookmarksopen=true,bookmarksnumbered=true]{hyperref}
 
 \geometry{margin=1in}
 \setstretch{1.1}
 \definecolor{lightgray}{gray}{0.95}
-\titleformat{\section}{\large\bfseries}{}{0em}{}
+\titleformat{\section}{\large\bfseries}{\thesection}{0.8em}{}
 
 \begin{document}
 
@@ -18,17 +19,20 @@
 \date{}
 \maketitle
 
-\section*{HOST}
+\tableofcontents
+
+\section{Setup}
+\label{sec:setup}
+
+\subsection{Host / Server}
 \begin{enumerate}
     \item Rename
     \item Turn off, add \texttt{*-CGE} Network Interface Card, turn on
-    \item Config IP, mask, Default Gateway, DNS Server
-    \item Config wireless profile
+    \item Configure IP, Mask, Default Gateway, DNS Server
     \item Config e-mail address
-    \item ????????? 
 \end{enumerate}
 
-\section*{SWITCH - 2960}
+\subsection{SWITCH - 2960}
 Rename the switch with the appropriate name. Usual format Sw\textbf{NetworkName}.
 
 \vspace{0.3cm}
@@ -62,12 +66,12 @@ Rename the switch with the appropriate name. Usual format Sw\textbf{NetworkName}
 \noindent Logging messages:
 
 \begin{minted}[bgcolor=lightgray,fontsize=\small,breaklines]{bash}
-(config)# logging host IpDnsServer
+(config)# logging host IpDnsServer (e.g., 192.168.20.254)
 (config)# service timestamps log datetime msec
 (config)# service timestamps debug datetime msec
 \end{minted}
 
-\noindent Console and VTY lines configuration
+\noindent Console and VTY lines configuration:
 \begin{minted}[bgcolor=lightgray,fontsize=\small,breaklines]{bash}
 (config)# line console 0
 (config-line)# password ciscoconpa55
@@ -86,19 +90,24 @@ Rename the switch with the appropriate name. Usual format Sw\textbf{NetworkName}
 \end{minted}
 
 \noindent Setting up the management interface:
+
+\noindent \textbf{Note:} You may need to open some of the FastEthenert ports.
 \begin{minted}[bgcolor=lightgray,fontsize=\small,breaklines]{bash}
 (config)# interface vlan 1
 (config-if)# description "Relevant Switch Description"
 (config-if)# ip address SwIpAddress NetworkMask
 (config-if)# no shutdown
 (config-if)# exit
+(config)# interface range fa0/1-24
+(config-if-range)# shutdown
+(config-if-range)# exit
 (config)# ip default-gateway IpDefaultGateway
 (config)# end
 # clock set 12:34:56 01 Jan 2025
 # copy running-config startup-config
 \end{minted}
 
-\section*{ROUTER - 2910}
+\subsection{ROUTER - 2910}
 Turn off the router and add \textbf{HWIC-2T} module for additional interfaces, as shown in Figure~\ref{fig:router}. Turn on the router.
 
 \begin{figure}[h]
@@ -143,7 +152,7 @@ Turn off the router and add \textbf{HWIC-2T} module for additional interfaces, a
 
 \noindent Logging messages:
 \begin{minted}[bgcolor=lightgray,fontsize=\small,breaklines]{bash}
-(config)# logging host IpDnsServer
+(config)# logging host IpDnsServer (e.g., 192.168.20.254)
 (config)# service timestamps log datetime msec
 (config)# service timestamps debug datetime msec
 \end{minted}
@@ -201,33 +210,47 @@ Turn off the router and add \textbf{HWIC-2T} module for additional interfaces, a
 # copy running-config startup-config 
 \end{minted}
 
-\section*{DHCP}
+\section{Services}
 
-\noindent \textbf{RouterName (DHCP Server):}
+\subsection{DHCP}
+
+\noindent \textbf{RouterName (DHCP Server - Donald):}
+
 \noindent \textbf{Note:} Set IpExcludedStart and IpExcludedEnd to exclude the address range from the default gateway to the host IP (i.e., IpExcludedStart = IpDefaultGateway, IpExcludedEnd = HostIP).
 \begin{minted}[bgcolor=lightgray,fontsize=\small,breaklines]{bash}
 (config)# ip dhcp excluded-address IpExcludedStart IpExcludedEnd
 (config)# ip dhcp pool PoolName
 (dhcp-config)# network NetworkAddress NetworkMask
 (dhcp-config)# default-router IpDefaultGateway
-(dhcp-config)# dns-server IpDnsServer
+(dhcp-config)# dns-server IpDnsServer (e.g., 192.168.20.254)
 (dhcp-config)# domain-name DomainName
 \end{minted}
 
-\noindent \textbf{RouterName (DHCP Relay):}
+\noindent \textbf{RouterName (DHCP Relay - Daisy / Duck):}
+
+\noindent \textbf{Note:} \textit{IpDefaultGateway} should be of type 192.168.*.* and \textit{IpDhcpServer} should be of type 10.10.10.*
 \begin{minted}[bgcolor=lightgray,fontsize=\small,breaklines]{bash}
 (config)# interface InterfaceName
 (config-if)# ip helper-address IpDhcpServer
 \end{minted}
 
-\section*{NTP}
+\noindent After configuration the DHCP server, check the result by bringing another PC (e.g., Daisy-DHCP) to the topology and assign its IP via DHCP. See Figure~\ref{fig:dhcp}.
+
+\begin{figure}[h!]
+\centering
+\includegraphics[width=0.8\textwidth]{./images/Dhcp.png}
+\caption{Daisy DHCP IP assignation}
+\label{fig:dhcp}
+\end{figure}
+
+\subsection{NTP}
 
 \noindent \textbf{Switches and Routers:}
 \begin{minted}[bgcolor=lightgray,fontsize=\small,breaklines]{bash}
 (config)# ntp server IpNtpServer
 (config)# ntp authenticate
 (config)# ntp trusted-key 1
-(config)# ntp authentication-key 1 MD5 NtpPassword
+(config)# ntp authentication-key 1 MD5 NTPpa55
 \end{minted}
 
 \noindent \textbf{Routers only:}
@@ -235,7 +258,17 @@ Turn off the router and add \textbf{HWIC-2T} module for additional interfaces, a
 (config)# ntp update-calendar
 \end{minted}
 
-\section*{FTP}
+\noindent \textbf{Server:}
+
+\noindent Make sure to turn it \textbf{ON}.
+
+\begin{itemize}
+    \item \textbf{Authentication:} \texttt{Enable}
+    \item \textbf{Key:} \texttt{1}
+    \item \textbf{Password:} NTPpa55
+\end{itemize}
+
+\subsection{FTP}
 
 \noindent \textbf{Command Prompt:}
 \begin{minted}[bgcolor=lightgray,fontsize=\small,breaklines]{bash}
@@ -244,5 +277,92 @@ dir
 get FileName
 \end{minted}
 
+\subsection{HTTP / HTTPS}
+
+\noindent In the server configuration window:
+
+\begin{itemize}
+    \item Set \textbf{HTTP = OFF}
+    \item Set \textbf{HTTPS = ON}
+\end{itemize}
+
+\subsection{DNS}
+
+\noindent Configure DNS on the server:
+
+\noindent Make sure to turn it \textbf{ON}.
+
+\begin{itemize}
+    \item \textbf{Name:} \texttt{sal.ro}
+    \item \textbf{Type:} \texttt{A Record}
+    \item \textbf{Address:} IpDnsServer (e.g., \texttt{192.168.20.254})
+\end{itemize}
+
+\noindent After adding the DNS entry, verify from a PC using a web browser:
+
+\noindent Search from its browser \texttt{https://sal.ro}
+
+\subsection{SYSLOG}
+
+\noindent Enable SYSLOG on the server. See Figure~\ref{fig:syslog}.
+
+\begin{figure}[h!]
+\centering
+\includegraphics[width=0.8\textwidth]{./images/Syslog.png}
+\caption{Syslog Image}
+\label{fig:syslog}
+\end{figure}
+
+\noindent Configure the router/switch to send logs. This step should be covered in section \hyperref[sec:setup]{Setup}.
+
+\subsection{EMAIL}
+
+\noindent Configure the email account in the PC (Desktop → Email). See Figure~\ref{fig:emailhost}. 
+
+\noindent \textbf{Password}: \texttt{123456}
+
+\begin{figure}[h!]
+\centering
+\includegraphics[width=0.8\textwidth]{./images/EmailHost.png}
+\caption{Email Host Image}
+\label{fig:emailhost}
+\end{figure}
+
+
+Then configure the Email server settings:
+
+\begin{itemize}
+    \item Username and password as required. Password \texttt{123456}
+    \item POP3 \& SMTP enabled
+\end{itemize}
+
+\subsection{AAA}
+
+\noindent \textbf{On the Server (Services → AAA):}
+
+\begin{itemize}
+    \item Set \textbf{Service: On}
+    \item Verify \textbf{Radius Port}: \texttt{1645}
+\end{itemize}
+
+\noindent \textbf{Network Configuration:}
+
+\begin{itemize}
+    \item \textbf{Client Name:} Wi-FiDaisy
+    \item \textbf{Client IP:} 10.10.10.2
+    \item \textbf{Server Type:} Radius
+    \item \textbf{Secret:} \texttt{RadiusPa55}
+    \item Press \textbf{Add}
+\end{itemize}
+
+\noindent \textbf{User Setup:}
+
+\begin{itemize}
+    \item \textbf{Username:} Wi-FiDaisy
+    \item \textbf{Password:} \texttt{RadiusPa55}
+    \item Press \textbf{Add}
+\end{itemize}
+
+\noindent AAA is now active and ready to authenticate RADIUS clients.
 
 \end{document}
